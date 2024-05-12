@@ -24,7 +24,12 @@ local function enter_text(self, old_func, o, s)
 end
 
 local  function key_press(self, old_func, o, k)
-	local text = self._input_panel:child("input_text")
+	local text = self._input_panel and self._input_panel:child("input_text")
+
+    if not alive(text) then
+        return old_func(self, o, k)
+    end
+
     local original_text = text:text()
 
     old_func(self, o, k)
@@ -53,7 +58,13 @@ local  function key_press(self, old_func, o, k)
     end
 end
 
-local function search_key_press(self, old_func, text, o, k)
+local function search_key_press(self, old_func, o, k)
+    local text = self._search and self._search.text
+
+    if not alive(text) then
+        return old_func(self, o, k)
+    end
+
     local original_text = text:text()
 
     old_func(self, o, k)
@@ -71,7 +82,7 @@ local function search_key_press(self, old_func, text, o, k)
 
 		local lbs = text:line_breaks()
 
-		if self.MAX_SEARCH_LENGTH < #text:text() then
+		if self.MAX_SEARCH_LENGTH and (self.MAX_SEARCH_LENGTH < #text:text()) then
 			text:set_text(string.sub(text:text(), 1, self.MAX_SEARCH_LENGTH))
 		end
 
@@ -95,7 +106,12 @@ local function key_down(self, old_func, o, k)
     wait(0.6)
 
     while paste(k) do
-        local text = self._input_panel:child("input_text")
+        local text = self._input_panel and self._input_panel:child("input_text")
+
+        if not alive(text) then
+            return old_func(self, o, k)
+        end
+
         local clipboard = Application:get_clipboard() or ""
 
         if clipboard == "" then
@@ -128,7 +144,12 @@ local function key_down_with_max_search_length(self, old_func, o, k)
     wait(0.6)
 
     while paste(k) do
-        local text = self._input_panel:child("input_text")
+        local text = self._input_panel and self._input_panel:child("input_text")
+
+        if not alive(text) then
+            return old_func(self, o, k)
+        end
+
         local clipboard = Application:get_clipboard() or ""
 
         if clipboard == "" then
@@ -140,7 +161,7 @@ local function key_down_with_max_search_length(self, old_func, o, k)
 
         local lbs = text:line_breaks()
 
-        if self.MAX_SEARCH_LENGTH < #text:text() then
+        if self.MAX_SEARCH_LENGTH and (self.MAX_SEARCH_LENGTH < #text:text()) then
 			text:set_text(string.sub(text:text(), 1, self.MAX_SEARCH_LENGTH))
 		end
 
@@ -189,8 +210,7 @@ local function wrap_with_max_search_length(class)
 
     local old_key_press = class.search_key_press
     function class:search_key_press(o, k)
-        local text = self._search.text
-        search_key_press(self, old_key_press, text, o, k)
+        search_key_press(self, old_key_press, o, k)
     end
 end
 
