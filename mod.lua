@@ -18,16 +18,21 @@ local function remove_underline(str)
     return str
 end
 
-local function enter_text(self, old_func, o, s)
-    s = remove_underline(s)
-    old_func(self, o, s)
+local function enter_text(self, old_func, ...)
+    local args = {...}
+    local str = args[#args]
+
+    str = remove_underline(str)
+    args[#args] = str
+
+    old_func(self, unpack(args))
 end
 
-local  function key_press(self, old_func, o, k)
+local function key_press(self, old_func, o, k)
 	local text = self._input_panel and self._input_panel:child("input_text")
 
     if not alive(text) then
-        return old_func(self, o, k)
+        return
     end
 
     local original_text = text:text()
@@ -62,7 +67,7 @@ local function search_key_press(self, old_func, o, k)
     local text = self._search and self._search.text
 
     if not alive(text) then
-        return old_func(self, o, k)
+        return
     end
 
     local original_text = text:text()
@@ -180,10 +185,9 @@ end
 
 local function wrap(class)
     local old_enter_text = class.enter_text
-    function class:enter_text(o, s)
-        enter_text(self, old_enter_text, o, s)
+    function class:enter_text(...)
+        enter_text(self, old_enter_text, ...)
     end
-
 
     --DISABLED UNTIL I FIND A WAY TO FIX RANDOM UNDERLINES APPEARING
     --[[local old_update_key_down = class.update_key_down
@@ -199,8 +203,8 @@ end
 
 local function wrap_with_max_search_length(class)
     local old_enter_text = class.enter_text
-    function class:enter_text(o, s)
-        enter_text(self, old_enter_text, o, s)
+    function class:enter_text(...)
+        enter_text(self, old_enter_text, ...)
     end
 
     --[[local old_update_key_down = class.update_key_down
